@@ -17,18 +17,18 @@ use router::Router;
 use smtp::sender::{Sender, SenderBuilder};
 use smtp::mailer::EmailBuilder;
 
+// const SEND_DOMAIN: &'static str = "@aerofs.com";
+
 fn main() {
     info!("Starting up!");
     println!("Hello");
     let mut router = Router::new();
 
-    // ?first_name=Karen&last_name=Rustad&email=karen%40aerofs.com&phone=952-210-6598&org_name=&org_size=&title=&comment=Testing
-
     router.get("/", hello_world);
-    router.post("/sales", post_email);
+    router.post("/:address", post_email);
 
     fn hello_world(_: &mut Request) -> IronResult<Response> {
-        let payload = "Hi!!!!";
+        let payload = "Hi!";
         Ok(Response::with((status::Ok, payload)))
     }
 
@@ -36,6 +36,7 @@ fn main() {
     fn post_email(request: &mut Request) -> IronResult<Response> {
         let mut payload = String::new();
         let mut email = "form".to_string();
+        //println!("{}", request.extensions.get::<Params>());
 
         match request.get_ref::<UrlEncodedQuery>() {
             Ok(ref hashmap) => {
@@ -57,8 +58,9 @@ fn main() {
             Err(ref e) => println!("{:?}", e)
         };
 
+        let mut recv_email = "karen@aerofs.com";
         let mut email_builder = EmailBuilder::new();
-        email_builder = email_builder.to("karen@aerofs.com");
+        email_builder = email_builder.to(recv_email);
         let email = email_builder.from("inquiryform@aerofs.com")
                         .body(&payload)
                         .subject(&format!("Inquiry from {}", email))
