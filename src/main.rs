@@ -7,12 +7,12 @@ extern crate log;
 
 use std::io::Read;
 use std::net::TcpStream;
-use std::collections::HashMap;
+// use std::collections::HashMap;
 use iron::prelude::*;
 use iron::status;
 use urlencoded::UrlEncodedQuery;
 use urlencoded::UrlEncodedBody;
-use urlencoded::QueryMap;
+// use urlencoded::QueryMap;
 use router::Router;
 use smtp::sender::{Sender, SenderBuilder};
 use smtp::mailer::EmailBuilder;
@@ -32,26 +32,6 @@ fn main() {
         Ok(Response::with((status::Ok, payload)))
     }
 
-    // fn log_params(req: &mut Request) -> IronResult<Response> {
-    //     // Extract the decoded data as hashmap, using the UrlEncodedQuery plugin.
-    //     match req.get_ref::<UrlEncodedQuery>() {
-    //         Ok(ref hashmap) => println!("Parsed GET request query string:\n {:?}", hashmap),
-    //         Err(ref e) => println!("{:?}", e)
-    //     };
-
-    //     Ok(Response::with((status::Ok, "Hello!")))
-    // }
-
-
-    // fn log_post_data(req: &mut Request) -> IronResult<Response> {
-    //     match req.get_ref::<UrlEncodedBody>() {
-    //         Ok(ref hashmap) => println!("Parsed POST request body:\n {:?}", hashmap),
-    //         Err(ref e) => println!("{:?}", e)
-    //     };
-
-    //     Ok(Response::with((status::Ok, "Hello!")))
-    // }
-
     // Receive a message by POST and play it back.
     fn post_email(request: &mut Request) -> IronResult<Response> {
         let mut payload = String::new();
@@ -65,10 +45,15 @@ fn main() {
                     payload.push_str(&value[0]);
                     payload.push_str("\n");
                 }
-                if (hashmap.contains_key("email")) {
+                if hashmap.contains_key("email") {
                     email = hashmap["email"][0].clone();
                 }
             },
+            Err(ref e) => println!("{:?}", e)
+        };
+
+        match request.get_ref::<UrlEncodedBody>() {
+            Ok(ref hashmap) => println!("Parsed POST request body:\n {:?}", hashmap),
             Err(ref e) => println!("{:?}", e)
         };
 
