@@ -2,17 +2,11 @@ extern crate iron;
 extern crate urlencoded;
 extern crate router;
 extern crate smtp;
-#[macro_use]
-extern crate log;
 
-use std::io::Read;
-use std::net::TcpStream;
-// use std::collections::HashMap;
 use iron::prelude::*;
 use iron::status;
 use urlencoded::UrlEncodedQuery;
-use urlencoded::UrlEncodedBody;
-// use urlencoded::QueryMap;
+// use urlencoded::UrlEncodedBody;
 use router::Router;
 use smtp::sender::{Sender, SenderBuilder};
 use smtp::mailer::EmailBuilder;
@@ -20,7 +14,6 @@ use smtp::mailer::EmailBuilder;
 // const SEND_DOMAIN: &'static str = "@aerofs.com";
 
 fn main() {
-    info!("Starting up!");
     println!("Hello");
     let mut router = Router::new();
 
@@ -36,6 +29,7 @@ fn main() {
     fn post_email(request: &mut Request) -> IronResult<Response> {
         let mut payload = String::new();
         let mut email = "form".to_string();
+        // TODO: email address chosen via URL route
         //println!("{}", request.extensions.get::<Params>());
 
         match request.get_ref::<UrlEncodedQuery>() {
@@ -53,11 +47,13 @@ fn main() {
             Err(ref e) => println!("{:?}", e)
         };
 
-        match request.get_ref::<UrlEncodedBody>() {
-            Ok(ref hashmap) => println!("Parsed POST request body:\n {:?}", hashmap),
-            Err(ref e) => println!("{:?}", e)
-        };
+        // TODO: handle POST bodies, if form works that way instead
+        // match request.get_ref::<UrlEncodedBody>() {
+        //     Ok(ref hashmap) => println!("Parsed POST request body:\n {:?}", hashmap),
+        //     Err(ref e) => println!("{:?}", e)
+        // };
 
+        // TODO: Make email address a function of a config var + routing param
         let mut recv_email = "karen@aerofs.com";
         let mut email_builder = EmailBuilder::new();
         email_builder = email_builder.to(recv_email);
