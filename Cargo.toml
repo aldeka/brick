@@ -5,6 +5,7 @@ authors = ["Karen Rustad <karen@aerofs.com>"]
 
 [dependencies]
 iron = "*"
+urlencoded = "*"
 router = "*"
 smtp = "*"
 log = "*"
