@@ -11,27 +11,29 @@ use router::Router;
 use smtp::sender::{Sender, SenderBuilder};
 use smtp::mailer::EmailBuilder;
 
-// const SEND_DOMAIN: &'static str = "@aerofs.com";
+
+const MY_DOMAIN: &'static str = "awesome.horse";
+//const EMAIL_FORM_FIELD: &'static str = "email";
+
 
 fn main() {
-    println!("Hello");
+    println!("Server is running.");
     let mut router = Router::new();
 
     router.get("/", hello_world);
     router.post("/:address", post_email);
 
     fn hello_world(_: &mut Request) -> IronResult<Response> {
-        let payload = "Hi!";
+        let payload = "Hi! I'm Brick.";
         Ok(Response::with((status::Ok, payload)))
     }
 
-    // Receive a message by POST and play it back.
+    // Receive a message by POST and send an email.
     fn post_email(request: &mut Request) -> IronResult<Response> {
         let mut payload = String::new();
         let mut email = "form".to_string();
-        // TODO: email address chosen via URL route
-        //println!("{}", request.extensions.get::<Params>());
 
+        // Generate contents of email out of a URL-encoded form post.
         match request.get_ref::<UrlEncodedQuery>() {
             Ok(ref hashmap) => {
                 for (name, value) in hashmap.iter() {
@@ -40,6 +42,9 @@ fn main() {
                     payload.push_str(&value[0]);
                     payload.push_str("\n");
                 }
+                // Look for and pull out `email`, if it exists
+                // Used in the subject line of the email generated.
+                // TODO: make this a configurable value.
                 if hashmap.contains_key("email") {
                     email = hashmap["email"][0].clone();
                 }
@@ -47,17 +52,19 @@ fn main() {
             Err(ref e) => println!("{:?}", e)
         };
 
+
         // TODO: handle POST bodies, if form works that way instead
         // match request.get_ref::<UrlEncodedBody>() {
         //     Ok(ref hashmap) => println!("Parsed POST request body:\n {:?}", hashmap),
         //     Err(ref e) => println!("{:?}", e)
         // };
 
-        // TODO: Make email address a function of a config var + routing param
-        let mut recv_email = "karen@aerofs.com";
+        let address = request.extensions.get::<Router>()
+            .unwrap().find("address").unwrap_or("/").clone();
+
         let mut email_builder = EmailBuilder::new();
-        email_builder = email_builder.to(recv_email);
-        let email = email_builder.from("inquiryform@aerofs.com")
+        email_builder = email_builder.to(&*{address.to_string() + "@" + MY_DOMAIN});
+        let email = email_builder.from(&*{"brick@".to_string() + MY_DOMAIN})
                         .body(&payload)
                         .subject(&format!("Inquiry from {}", email))
                         .build();
@@ -69,7 +76,7 @@ fn main() {
         sender.close();
 
         match result {
-            Ok(..) => println!("Email sent successfully"),
+            Ok(..) => println!("Email sent successfully."),
             Err(error) => println!("Error: {:?}", error),
         }
 
